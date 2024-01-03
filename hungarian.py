@@ -7,6 +7,9 @@ import streamlit as st
 import time
 import pickle
 
+import sys
+print(sys.version)
+
 with open("data/hungarian.data", encoding='Latin1') as file:
   lines = [line.strip() for line in file]
 
