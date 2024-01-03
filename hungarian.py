@@ -104,6 +104,7 @@ st.set_page_config(
 )
 
 st.title("Hungarian Heart Disease")
+st.write(f"**By Muhammad Zidan Ramdhani** : ")
 st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Do not copy outright_])")
 st.write("")
 
