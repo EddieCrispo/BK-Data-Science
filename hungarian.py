@@ -91,7 +91,8 @@ smote = SMOTE(random_state=42)
 X, y = smote.fit_resample(X, y)
 
 # model = pickle.load(open("model/xgb_model.pkl", 'rb'))
-model = pickle.load(open("model/knn_ov_tuning_model.pkl", 'rb'))
+# model = pickle.load(open("model/knn_ov_tuning_model.pkl", 'rb'))
+model = pickle.load(open("model/xgb_ovtuning_model.pkl", 'rb'))
 
 y_pred = model.predict(X)
 accuracy = accuracy_score(y, y_pred)
