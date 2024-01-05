@@ -25,7 +25,7 @@ df = df.iloc[:, :-1]
 df = df.drop(df.columns[0], axis=1)
 df = df.astype(float)
 
-df.replace(-9.0, np.NaN, inplace=True)
+df.replace(-9.0, np.nan, inplace=True)
 
 df_selected = df.iloc[:, [1, 2, 7, 8, 10, 14, 17, 30, 36, 38, 39, 42, 49, 56]]
 
@@ -84,7 +84,7 @@ fill_values = {
 df_clean = df_selected.fillna(value=fill_values)
 df_clean.drop_duplicates()
 
-X = df_clean.drop("target", axis=1).values
+X = df_clean.drop('target', axis=1).values
 y = df_clean.iloc[:,-1]
 
 smote = SMOTE(random_state=42)
@@ -101,7 +101,7 @@ accuracy = accuracy_score(y_test, y_pred)
 accuracy = round((accuracy * 100), 2)
 
 df_final = X_smote_resampled
-df_final.iloc[:,'target'] = y_smote_resampled
+df_final.loc[:,'target'] = y_smote_resampled
 
 # ========================================================================================================================================================================================
 
