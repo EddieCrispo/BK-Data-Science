@@ -90,9 +90,9 @@ y = df_clean['target']
 smote = SMOTE(random_state=42)
 X, y = smote.fit_resample(X, y)
 
-# model = pickle.load(open("model/xgb_model.pkl", 'rb'))
+model = pickle.load(open("model/xgb_model.pkl", 'rb'))
 # picklemodel = pickle.load(open("model/knn_ovtuning_model.pkl", 'rb'))
-model = joblib.load("model/knn_ovtuning_model.joblib")
+# model = joblib.load("model/knn_ovtuning_model.joblib")
 
 y_pred = model.predict(X)
 accuracy = accuracy_score(y, y_pred)
@@ -111,7 +111,7 @@ st.set_page_config(
 
 st.title("Hungarian Heart Disease")
 st.write(f"**By Muhammad Zidan Ramdhani**")
-st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Model in Use : XGBoost with Oversampling & Tuning_])")
+st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Model in Use : XGBoost Optimised_])")
 st.write("")
 
 tab1, tab2 = st.tabs(["Single-predict", "Multi-predict"])
