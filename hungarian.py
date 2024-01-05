@@ -74,31 +74,30 @@ meanRestCG = round(meanRestCG.mean())
 meanthalach = round(meanthalach.mean())
 meanexang = round(meanexang.mean())
 
-fill_values={'trestbps': meanTBPS, 'chol': meanChol, 'fbs': meanfbs,
-             'thalach': meanthalach, 'exang': meanexang, 'restecg': meanRestCG}
+fill_values={'trestbps': meanTBPS, 
+             'chol': meanChol, 
+             'fbs': meanfbs,
+             'thalach': meanthalach, 
+             'exang': meanexang, 
+             'restecg': meanRestCG}
 
-dfClean = df_selected.fillna(value=fill_values)
-dfClean = dfClean.drop_duplicates()
+df_clean = df_selected.fillna(value=fill_values)
+df_clean.drop_duplicates(inplace=True)
 
-X = dfClean.drop('target',axis=1).values
-y = dfClean.iloc[:,-1]
+X = df_clean.drop("target", axis=1)
+y = df_clean['target']
 
 smote = SMOTE(random_state=42)
-X_smote_resampled, y_smote_resampled = smote.fit_resample(X, y)
-
-# scaler = MinMaxScaler()
-# X_smote_resampled_normal=scaler.fit_transform(X_smote_resampled)
-
-X_train, X_test, y_train, y_test = train_test_split(X_smote_resampled, y_smote_resampled, test_size=0.2, random_state=42, stratify=y_smote_resampled)
+X, y = smote.fit_resample(X, y)
 
 model = pickle.load(open("model/xgb_model.pkl", 'rb'))
 
-y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
+y_pred = model.predict(X)
+accuracy = accuracy_score(y, y_pred)
 accuracy = round((accuracy * 100), 2)
 
-df_final = X_smote_resampled
-df_final.loc[:, 'target'] = y_smote_resampled
+df_final = X
+df_final['target'] = y
 
 # ========================================================================================================================================================================================
 
