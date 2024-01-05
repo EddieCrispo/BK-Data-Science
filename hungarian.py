@@ -1,33 +1,35 @@
-import itertools
 import pandas as pd
+import re
 import numpy as np
+import itertools
 from imblearn.over_sampling import SMOTE
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
 import streamlit as st
 import time
 import pickle
-import joblib
 
+dir = "dataset/hungarian.data"
 
-with open("data/hungarian.data", encoding='Latin1') as file:
+with open(dir, encoding='Latin1') as file:
   lines = [line.strip() for line in file]
 
 data = itertools.takewhile(
-  lambda x: len(x) == 76,
-  (' '.join(lines[i:(i + 10)]).split() for i in range(0, len(lines), 10))
+    lambda x: len(x) == 76,
+    (' '.join(lines[i:(i+10)]).split() for i in range(0, len(lines), 10))
 )
 
 df = pd.DataFrame.from_records(data)
 
-df = df.iloc[:, :-1]
+df = df.iloc[:,:-1]
 df = df.drop(df.columns[0], axis=1)
 df = df.astype(float)
 
 df.replace(-9.0, np.nan, inplace=True)
 
-df_selected = df.iloc[:, [1, 2, 7, 8, 10, 14, 17, 30, 36, 38, 39, 42, 49, 56]]
+df_selected = df.iloc[:, [1,2,7,8,10,14,17,30,36,38,39,42,49,56]]
 
 column_mapping = {
   2: 'age',
@@ -48,7 +50,7 @@ column_mapping = {
 
 df_selected.rename(columns=column_mapping, inplace=True)
 
-columns_to_drop = ['ca', 'slope','thal']
+columns_to_drop = ['ca','slope','thal']
 df_selected = df_selected.drop(columns_to_drop, axis=1)
 
 meanTBPS = df_selected['trestbps'].dropna()
@@ -61,47 +63,42 @@ meanexang = df_selected['exang'].dropna()
 meanTBPS = meanTBPS.astype(float)
 meanChol = meanChol.astype(float)
 meanfbs = meanfbs.astype(float)
+meanRestCG = meanRestCG.astype(float)
 meanthalach = meanthalach.astype(float)
 meanexang = meanexang.astype(float)
-meanRestCG = meanRestCG.astype(float)
 
 meanTBPS = round(meanTBPS.mean())
 meanChol = round(meanChol.mean())
 meanfbs = round(meanfbs.mean())
+meanRestCG = round(meanRestCG.mean())
 meanthalach = round(meanthalach.mean())
 meanexang = round(meanexang.mean())
-meanRestCG = round(meanRestCG.mean())
 
-fill_values = {
-  'trestbps': meanTBPS,
-  'chol': meanChol,
-  'fbs': meanfbs,
-  'thalach':meanthalach,
-  'exang':meanexang,
-  'restecg':meanRestCG
-}
+fill_values={'trestbps': meanTBPS, 'chol': meanChol, 'fbs': meanfbs,
+             'thalach': meanthalach, 'exang': meanexang, 'restecg': meanRestCG}
 
-df_clean = df_selected.fillna(value=fill_values)
-df_clean.drop_duplicates()
+dfClean = df_selected.fillna(value=fill_values)
+dfClean = dfClean.drop_duplicates()
 
-X = df_clean.drop('target', axis=1).values
-y = df_clean.iloc[:,-1]
+X = dfClean.drop('target',axis=1).values
+y = dfClean.iloc[:,-1]
 
 smote = SMOTE(random_state=42)
 X_smote_resampled, y_smote_resampled = smote.fit_resample(X, y)
 
+# scaler = MinMaxScaler()
+# X_smote_resampled_normal=scaler.fit_transform(X_smote_resampled)
+
 X_train, X_test, y_train, y_test = train_test_split(X_smote_resampled, y_smote_resampled, test_size=0.2, random_state=42, stratify=y_smote_resampled)
 
-# model = joblib.load("model/knn_ovtuning_model.joblib")
 model = pickle.load(open("model/xgb_model.pkl", 'rb'))
-# model = pickle.load(open("model/knn_ovtuning_model.pkl", 'rb'))
 
 y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 accuracy = round((accuracy * 100), 2)
 
 df_final = X_smote_resampled
-df_final.loc[:,'target'] = y_smote_resampled
+df_final.loc[:, 'target'] = y_smote_resampled
 
 # ========================================================================================================================================================================================
 
