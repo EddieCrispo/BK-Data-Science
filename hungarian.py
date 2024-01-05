@@ -91,7 +91,7 @@ X, y = smote.fit_resample(X, y)
 
 # model = pickle.load(open("model/xgb_model.pkl", 'rb'))
 # model = pickle.load(open("model/xgb_ov_tuning_model.pkl", 'rb'))
-model = joblib.load("model/knn_ovtuning_model.pkl")
+model = joblib.load("model/knn_ovtuning_model.joblib")
 
 y_pred = model.predict(X)
 accuracy = accuracy_score(y, y_pred)
