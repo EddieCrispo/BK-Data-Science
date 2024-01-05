@@ -4,9 +4,6 @@ import numpy as np
 import itertools
 from imblearn.over_sampling import SMOTE
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import RandomizedSearchCV
 import streamlit as st
 import time
 import pickle
