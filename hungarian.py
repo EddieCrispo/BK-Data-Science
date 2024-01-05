@@ -5,7 +5,7 @@ from imblearn.over_sampling import SMOTE
 from sklearn.metrics import accuracy_score
 import streamlit as st
 import time
-import pickle
+import joblib
 
 import sys
 print(sys.version)
@@ -91,7 +91,7 @@ X, y = smote.fit_resample(X, y)
 
 # model = pickle.load(open("model/xgb_model.pkl", 'rb'))
 # model = pickle.load(open("model/xgb_ov_tuning_model.pkl", 'rb'))
-model = pickle.load(open("model/knn_ovtuning_model.pkl", 'rb'))
+model = joblib.load("model/knn_ovtuning_model.pkl")
 
 y_pred = model.predict(X)
 accuracy = accuracy_score(y, y_pred)
