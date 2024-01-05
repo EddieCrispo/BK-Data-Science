@@ -5,6 +5,7 @@ from imblearn.over_sampling import SMOTE
 from sklearn.metrics import accuracy_score
 import streamlit as st
 import time
+import pickle
 import joblib
 
 import sys
