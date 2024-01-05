@@ -11,7 +11,7 @@ import streamlit as st
 import time
 import pickle
 
-dir = "dataset/hungarian.data"
+dir = "data/hungarian.data"
 
 with open(dir, encoding='Latin1') as file:
   lines = [line.strip() for line in file]
