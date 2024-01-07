@@ -8,8 +8,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score,classification_report,recall_score,f1_score,precision_score,roc_auc_score,confusion_matrix,precision_score
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 import time
@@ -139,12 +137,10 @@ xgb_model.fit(X_train, y_train)
 
 y_pred_xgb = xgb_model.predict(X_test)
 
-model = xgb_model
-
 # model = DecisionTreeClassifier()
 # model.fit(X_train_normal, y_train_normal)
 
-y_pred = model.predict(X_train)
+y_pred = xgb_model.predict(X_train)
 accuracy = accuracy_score(y_train, y_pred)
 accuracy = round((accuracy * 100), 2)
 
@@ -277,7 +273,7 @@ with tab1:
   st.write("")
   if predict_btn:
     inputs = [[age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak]]
-    prediction = model.predict(inputs)[0]
+    prediction = xgb_model.predict(inputs)[0]
 
     bar = st.progress(0)
     status_text = st.empty()
@@ -321,7 +317,7 @@ with tab2:
 
   if file_uploaded:
     uploaded_df = pd.read_csv(file_uploaded)
-    prediction_arr = model.predict(uploaded_df)
+    prediction_arr = xgb_model.predict(uploaded_df)
 
     bar = st.progress(0)
     status_text = st.empty()
