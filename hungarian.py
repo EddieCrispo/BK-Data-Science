@@ -108,7 +108,7 @@ X_train, X_test, y_train, y_test = train_test_split(X_smote_resampled, y_smote_r
 X_train_normal, X_test_normal, y_train_normal, y_test_normal = train_test_split(X_smote_resampled_normal, y_smote_resampled, test_size=0.2, random_state=42,stratify = y_smote_resampled)
 
 # model = pickle.load(open("model/xgb_model.pkl", 'rb'))
-model = pickle.load(open("model/xgb_norm_ov_tun_model.pkl", 'rb'))
+model = pickle.load(open("model/knn_norm_ov_tun_model.pkl", 'rb'))
 
 y_pred = model.predict(X_train_normal)
 accuracy = accuracy_score(y_train_normal, y_pred)
