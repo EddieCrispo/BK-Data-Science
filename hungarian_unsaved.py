@@ -157,7 +157,7 @@ st.set_page_config(
 
 st.title("Hungarian Heart Disease")
 st.write(f"**By Muhammad Zidan Ramdhani**")
-st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Model in Use : XGBoost with Oversampling & Normalization_])")
+st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Model in Use : XGBoost with Oversampling_])")
 st.write("")
 
 tab1, tab2 = st.tabs(["Single-predict", "Multi-predict"])
