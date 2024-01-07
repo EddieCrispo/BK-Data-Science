@@ -1,32 +1,31 @@
-import pandas as pd
-import re
-import numpy as np
 import itertools
+import pandas as pd
+import numpy as np
 from imblearn.over_sampling import SMOTE
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
 import streamlit as st
 import time
 import pickle
 
-dir = "data/hungarian.data"
-
-with open(dir, encoding='Latin1') as file:
+with open("data/hungarian.data", encoding='Latin1') as file:
   lines = [line.strip() for line in file]
 
 data = itertools.takewhile(
-    lambda x: len(x) == 76,
-    (' '.join(lines[i:(i+10)]).split() for i in range(0, len(lines), 10))
+  lambda x: len(x) == 76,
+  (' '.join(lines[i:(i + 10)]).split() for i in range(0, len(lines), 10))
 )
 
 df = pd.DataFrame.from_records(data)
 
-df = df.iloc[:,:-1]
+df = df.iloc[:, :-1]
 df = df.drop(df.columns[0], axis=1)
 df = df.astype(float)
 
-df.replace(-9.0, np.nan, inplace=True)
+df.replace(-9.0, np.NaN, inplace=True)
 
-df_selected = df.iloc[:, [1,2,7,8,10,14,17,30,36,38,39,42,49,56]]
+df_selected = df.iloc[:, [1, 2, 7, 8, 10, 14, 17, 30, 36, 38, 39, 42, 49, 56]]
 
 column_mapping = {
   2: 'age',
@@ -47,7 +46,7 @@ column_mapping = {
 
 df_selected.rename(columns=column_mapping, inplace=True)
 
-columns_to_drop = ['ca','slope','thal']
+columns_to_drop = ['ca', 'slope','thal']
 df_selected = df_selected.drop(columns_to_drop, axis=1)
 
 meanTBPS = df_selected['trestbps'].dropna()
@@ -60,19 +59,25 @@ meanexang = df_selected['exang'].dropna()
 meanTBPS = meanTBPS.astype(float)
 meanChol = meanChol.astype(float)
 meanfbs = meanfbs.astype(float)
-meanRestCG = meanRestCG.astype(float)
 meanthalach = meanthalach.astype(float)
 meanexang = meanexang.astype(float)
+meanRestCG = meanRestCG.astype(float)
 
 meanTBPS = round(meanTBPS.mean())
 meanChol = round(meanChol.mean())
 meanfbs = round(meanfbs.mean())
-meanRestCG = round(meanRestCG.mean())
 meanthalach = round(meanthalach.mean())
 meanexang = round(meanexang.mean())
+meanRestCG = round(meanRestCG.mean())
 
-fill_values={'trestbps': meanTBPS, 'chol': meanChol, 'fbs': meanfbs,
-             'thalach': meanthalach, 'exang': meanexang, 'restecg': meanRestCG}
+fill_values = {
+  'trestbps': meanTBPS,
+  'chol': meanChol,
+  'fbs': meanfbs,
+  'thalach':meanthalach,
+  'exang':meanexang,
+  'restecg':meanRestCG
+}
 
 df_clean = df_selected.fillna(value=fill_values)
 df_clean.drop_duplicates(inplace=True)
@@ -81,15 +86,32 @@ X = df_clean.drop("target", axis=1)
 y = df_clean['target']
 
 smote = SMOTE(random_state=42)
-X, y = smote.fit_resample(X, y)
+X_smote_resampled, y_smote_resampled = smote.fit_resample(X, y)
 
-model = pickle.load(open("model/xgb_model.pkl", 'rb'))
-# model = pickle.load(open("model/xgb_norm_ov_tun_model.pkl", 'rb'))
-# model = pickle.load(open("model/knn_norm_ov_tun.pkl", 'rb'))
-# model = pickle.load(open("model/rf_model_estimator.pkl", 'rb'))
+new_df1 = pd.DataFrame(data=y)
 
-y_pred = model.predict(X)
-accuracy = accuracy_score(y, y_pred)
+new_df2 = pd.DataFrame(data=y_smote_resampled)
+
+new_df1 = pd.DataFrame(data=y)
+new_df1.value_counts()
+
+scaler = MinMaxScaler()
+
+X_smote_resampled_normal = scaler.fit_transform(X_smote_resampled)
+
+dfcek1 = pd.DataFrame(X_smote_resampled_normal)
+
+#membagi fitur dan target menjadi data train dan test (untuk yang oversampled saja)
+X_train, X_test, y_train, y_test = train_test_split(X_smote_resampled, y_smote_resampled, test_size=0.2, random_state=42,stratify=y_smote_resampled)
+
+# membagi fitur dan target menjadi data train dan test (untuk yang oversample + normalization)
+X_train_normal, X_test_normal, y_train_normal, y_test_normal = train_test_split(X_smote_resampled_normal, y_smote_resampled, test_size=0.2, random_state=42,stratify = y_smote_resampled)
+
+# model = pickle.load(open("model/xgb_model.pkl", 'rb'))
+model = pickle.load(open("model/xgb_norm_ov_tun_model.pkl", 'rb'))
+
+y_pred = model.predict(X_train_normal)
+accuracy = accuracy_score(y_train_normal, y_pred)
 accuracy = round((accuracy * 100), 2)
 
 df_final = X
@@ -105,7 +127,7 @@ st.set_page_config(
 
 st.title("Hungarian Heart Disease")
 st.write(f"**By Muhammad Zidan Ramdhani**")
-st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Model in Use : XGBoost Optimised_])")
+st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Model in Use : XGBoost with Oversampling & Tuning_])")
 st.write("")
 
 tab1, tab2 = st.tabs(["Single-predict", "Multi-predict"])
@@ -113,11 +135,11 @@ tab1, tab2 = st.tabs(["Single-predict", "Multi-predict"])
 with tab1:
   st.sidebar.header("**User Input** Sidebar")
 
-  age = st.sidebar.number_input(label=":blue[**Age**]", min_value=df_final['age'].min(), max_value=df_final['age'].max())
+  age = st.sidebar.number_input(label=":violet[**Age**]", min_value=df_final['age'].min(), max_value=df_final['age'].max())
   st.sidebar.write(f":orange[Min] value: :orange[**{df_final['age'].min()}**], :red[Max] value: :red[**{df_final['age'].max()}**]")
   st.sidebar.write("")
 
-  sex_sb = st.sidebar.selectbox(label=":blue[**Sex**]", options=["Male", "Female"])
+  sex_sb = st.sidebar.selectbox(label=":violet[**Sex**]", options=["Male", "Female"])
   st.sidebar.write("")
   st.sidebar.write("")
   if sex_sb == "Male":
@@ -127,7 +149,7 @@ with tab1:
   # -- Value 0: Female
   # -- Value 1: Male
 
-  cp_sb = st.sidebar.selectbox(label=":blue[**Chest pain type**]", options=["Typical angina", "Atypical angina", "Non-anginal pain", "Asymptomatic"])
+  cp_sb = st.sidebar.selectbox(label=":violet[**Chest pain type**]", options=["Typical angina", "Atypical angina", "Non-anginal pain", "Asymptomatic"])
   st.sidebar.write("")
   st.sidebar.write("")
   if cp_sb == "Typical angina":
@@ -143,15 +165,15 @@ with tab1:
   # -- Value 3: non-anginal pain
   # -- Value 4: asymptomatic
 
-  trestbps = st.sidebar.number_input(label=":blue[**Resting blood pressure** (in mm Hg on admission to the hospital)]", min_value=df_final['trestbps'].min(), max_value=df_final['trestbps'].max())
+  trestbps = st.sidebar.number_input(label=":violet[**Resting blood pressure** (in mm Hg on admission to the hospital)]", min_value=df_final['trestbps'].min(), max_value=df_final['trestbps'].max())
   st.sidebar.write(f":orange[Min] value: :orange[**{df_final['trestbps'].min()}**], :red[Max] value: :red[**{df_final['trestbps'].max()}**]")
   st.sidebar.write("")
 
-  chol = st.sidebar.number_input(label=":blue[**Serum cholestoral** (in mg/dl)]", min_value=df_final['chol'].min(), max_value=df_final['chol'].max())
+  chol = st.sidebar.number_input(label=":violet[**Serum cholestoral** (in mg/dl)]", min_value=df_final['chol'].min(), max_value=df_final['chol'].max())
   st.sidebar.write(f":orange[Min] value: :orange[**{df_final['chol'].min()}**], :red[Max] value: :red[**{df_final['chol'].max()}**]")
   st.sidebar.write("")
 
-  fbs_sb = st.sidebar.selectbox(label=":blue[**Fasting blood sugar > 120 mg/dl?**]", options=["False", "True"])
+  fbs_sb = st.sidebar.selectbox(label=":violet[**Fasting blood sugar > 120 mg/dl?**]", options=["False", "True"])
   st.sidebar.write("")
   st.sidebar.write("")
   if fbs_sb == "False":
@@ -161,7 +183,7 @@ with tab1:
   # -- Value 0: false
   # -- Value 1: true
 
-  restecg_sb = st.sidebar.selectbox(label=":blue[**Resting electrocardiographic results**]", options=["Normal", "Having ST-T wave abnormality", "Showing left ventricular hypertrophy"])
+  restecg_sb = st.sidebar.selectbox(label=":violet[**Resting electrocardiographic results**]", options=["Normal", "Having ST-T wave abnormality", "Showing left ventricular hypertrophy"])
   st.sidebar.write("")
   st.sidebar.write("")
   if restecg_sb == "Normal":
@@ -174,11 +196,11 @@ with tab1:
   # -- Value 1: having ST-T wave abnormality (T wave inversions and/or ST  elevation or depression of > 0.05 mV)
   # -- Value 2: showing probable or definite left ventricular hypertrophy by Estes' criteria
 
-  thalach = st.sidebar.number_input(label=":blue[**Maximum heart rate achieved**]", min_value=df_final['thalach'].min(), max_value=df_final['thalach'].max())
+  thalach = st.sidebar.number_input(label=":violet[**Maximum heart rate achieved**]", min_value=df_final['thalach'].min(), max_value=df_final['thalach'].max())
   st.sidebar.write(f":orange[Min] value: :orange[**{df_final['thalach'].min()}**], :red[Max] value: :red[**{df_final['thalach'].max()}**]")
   st.sidebar.write("")
 
-  exang_sb = st.sidebar.selectbox(label=":blue[**Exercise induced angina?**]", options=["No", "Yes"])
+  exang_sb = st.sidebar.selectbox(label=":violet[**Exercise induced angina?**]", options=["No", "Yes"])
   st.sidebar.write("")
   st.sidebar.write("")
   if exang_sb == "No":
@@ -188,7 +210,7 @@ with tab1:
   # -- Value 0: No
   # -- Value 1: Yes
 
-  oldpeak = st.sidebar.number_input(label=":blue[**ST depression induced by exercise relative to rest**]", min_value=df_final['oldpeak'].min(), max_value=df_final['oldpeak'].max())
+  oldpeak = st.sidebar.number_input(label=":violet[**ST depression induced by exercise relative to rest**]", min_value=df_final['oldpeak'].min(), max_value=df_final['oldpeak'].max())
   st.sidebar.write(f":orange[Min] value: :orange[**{df_final['oldpeak'].min()}**], :red[Max] value: :red[**{df_final['oldpeak'].max()}**]")
   st.sidebar.write("")
 
@@ -214,7 +236,7 @@ with tab1:
   st.dataframe(preview_df.iloc[:, 6:])
   st.write("")
 
-  result = ":blue[-]"
+  result = ":violet[-]"
 
   predict_btn = st.button("**Predict**", type="primary")
 
@@ -236,15 +258,15 @@ with tab1:
         bar.empty()
 
     if prediction == 0:
-      result = ":green[**Healthy**]"
+      result = ":green[**Healthy**]" ":white[**Nice!, Keep doing what you're doing**]"
     elif prediction == 1:
-      result = ":orange[**Heart disease level 1**]"
+      result = ":orange[**Heart disease level 1**]" ":white[**No need to worry, just a gentle reminder to prioritize heart health.**]"
     elif prediction == 2:
-      result = ":orange[**Heart disease level 2**]"
+      result = ":orange[**Heart disease level 2**]" ":white[**You've got this! Take steps to improve your heart health, and you'll feel the difference.**]"
     elif prediction == 3:
-      result = ":red[**Heart disease level 3**]"
+      result = ":red[**Heart disease level 3**]" ":white[**It's a journey, not a race. Your commitment to improvement is the key.**]"
     elif prediction == 4:
-      result = ":red[**Heart disease level 4**]"
+      result = ":red[**Heart disease level 4**]" ":white[**It's a tough road, but you're resilient. With the right support, positive changes are possible**]"
 
   st.write("")
   st.write("")
