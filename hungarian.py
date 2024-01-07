@@ -1,13 +1,13 @@
-import itertools
 import pandas as pd
 import numpy as np
+import itertools
+import streamlit as st
 from imblearn.over_sampling import SMOTE
-from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
-import streamlit as st
-import time
+from sklearn.metrics import accuracy_score
 import pickle
+import time
 
 with open("data/hungarian.data", encoding='Latin1') as file:
   lines = [line.strip() for line in file]
@@ -108,7 +108,7 @@ X_train, X_test, y_train, y_test = train_test_split(X_smote_resampled, y_smote_r
 X_train_normal, X_test_normal, y_train_normal, y_test_normal = train_test_split(X_smote_resampled_normal, y_smote_resampled, test_size=0.2, random_state=42,stratify = y_smote_resampled)
 
 # model = pickle.load(open("model/xgb_model.pkl", 'rb'))
-model = pickle.load(open("model/knn_norm_ov_tun_model.pkl", 'rb'))
+model = pickle.load(open("model/xgb_norm_ov_model.pkl", 'rb'))
 
 y_pred = model.predict(X_train_normal)
 accuracy = accuracy_score(y_train_normal, y_pred)
@@ -127,7 +127,7 @@ st.set_page_config(
 
 st.title("Hungarian Heart Disease")
 st.write(f"**By Muhammad Zidan Ramdhani**")
-st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Model in Use : XGBoost with Oversampling & Tuning_])")
+st.write(f"**_Model's Accuracy_** :  :green[**{accuracy}**]% (:red[_Model in Use : XGBoost with Oversampling & Normalization_])")
 st.write("")
 
 tab1, tab2 = st.tabs(["Single-predict", "Multi-predict"])
